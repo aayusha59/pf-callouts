@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Axiom to Pump.fun Callout</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <h1><span class="badge">PUMP</span> Axiom to Pump.fun Callout</h1>
+
+    <div class="row">
+      <span id="auth" class="muted">Checking pump.fun session...</span>
+      <span class="grow"></span>
+      <button id="recheck" type="button">Recheck</button>
+    </div>
+
+    <h2>Request template</h2>
+    <div class="muted" id="template-source"></div>
+    <textarea id="template" class="code" spellcheck="false"></textarea>
+    <div class="row stack">
+      <button id="save-template" class="primary" type="button">Save template</button>
+      <button id="reset-template" type="button">Reset to default</button>
+    </div>
+
+    <h2>Captured callout requests</h2>
+    <div class="muted" id="capture-help">
+      None yet. Keep this extension loaded, open any coin on pump.fun, click
+      <b>Add your callout</b>, and post once. The request appears here and is adopted as the template automatically.
+    </div>
+    <div id="captures"></div>
+    <div class="row"><button id="clear-captures" type="button">Clear captures</button></div>
+
+    <h2>Settings</h2>
+    <label class="muted" for="transport">How to send the request</label>
+    <select id="transport">
+      <option value="auto">Auto: direct first, fall back to a pump.fun tab</option>
+      <option value="direct">Direct only (service worker fetch)</option>
+      <option value="tab">Always via a pump.fun tab</option>
+    </select>
+    <div class="row stack">
+      <button id="save-settings" class="primary" type="button">Save settings</button>
+      <button id="reset-pos" type="button">Reset overlay position</button>
+    </div>
+
+    <div id="status"></div>
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>

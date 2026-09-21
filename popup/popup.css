@@ -1,0 +1,145 @@
+body {
+  width: 380px;
+  margin: 0;
+  padding: 12px;
+  background: #101318;
+  color: #e6e8eb;
+  font: 13px Inter, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+h1 {
+  font-size: 14px;
+  margin: 0 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+h2 {
+  font-size: 12px;
+  margin: 14px 0 6px;
+  color: #8b93a1;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.badge {
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: #4ade80;
+  color: #06110a;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.grow {
+  flex: 1;
+}
+
+.stack {
+  margin-top: 6px;
+}
+
+.muted {
+  color: #8b93a1;
+  font-size: 12px;
+}
+
+.ok {
+  color: #4ade80;
+}
+
+.err {
+  color: #f87171;
+}
+
+button {
+  background: #1c222b;
+  color: #e6e8eb;
+  border: 1px solid #2c333e;
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font: inherit;
+}
+
+button:hover {
+  border-color: #3b4452;
+}
+
+button.primary {
+  background: #4ade80;
+  color: #06110a;
+  border-color: transparent;
+  font-weight: 700;
+}
+
+textarea,
+input,
+select {
+  width: 100%;
+  box-sizing: border-box;
+  background: #0b0e12;
+  border: 1px solid #262b33;
+  border-radius: 6px;
+  color: #e6e8eb;
+  padding: 6px 8px;
+  font: inherit;
+  outline: none;
+}
+
+textarea.code {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 11px;
+  min-height: 150px;
+  resize: vertical;
+}
+
+textarea:focus,
+input:focus,
+select:focus {
+  border-color: #4ade80;
+}
+
+.capture {
+  border: 1px solid #262b33;
+  border-radius: 8px;
+  padding: 8px;
+  margin-bottom: 6px;
+  background: #0b0e12;
+}
+
+.capture code {
+  font-size: 11px;
+  word-break: break-all;
+}
+
+.capture pre {
+  margin: 6px 0 0;
+  font-size: 10px;
+  max-height: 100px;
+  overflow: auto;
+  white-space: pre-wrap;
+  color: #b8c0cc;
+}
+
+ol {
+  margin: 4px 0 0;
+  padding-left: 18px;
+}
+
+li {
+  margin-bottom: 3px;
+}
+
+#status {
+  min-height: 16px;
+  margin-top: 6px;
+  font-size: 12px;
+}
