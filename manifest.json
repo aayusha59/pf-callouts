@@ -1,0 +1,43 @@
+{
+  "manifest_version": 3,
+  "name": "Axiom to Pump.fun Callout",
+  "version": "1.0.0",
+  "minimum_chrome_version": "120",
+  "description": "Floating overlay on axiom.trade that detects the current coin mint and posts a pump.fun callout without leaving the page.",
+  "permissions": ["storage", "scripting", "tabs", "webRequest", "declarativeNetRequest"],
+  "host_permissions": [
+    "*://*.pump.fun/*",
+    "*://axiom.trade/*",
+    "*://*.axiom.trade/*",
+    "https://api.dexscreener.com/*"
+  ],
+  "background": {
+    "service_worker": "src/background/background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://axiom.trade/meme/*", "https://*.axiom.trade/meme/*"],
+      "js": ["src/content/axiom.js"],
+      "type": "module",
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "src/content/overlay.css",
+        "src/content/detect.js",
+        "src/content/overlay.js",
+        "src/shared/constants.js",
+        "src/shared/format.js",
+        "src/shared/messaging.js"
+      ],
+      "matches": ["https://axiom.trade/*", "https://*.axiom.trade/*"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "Axiom to Pump.fun Callout"
+  }
+}
