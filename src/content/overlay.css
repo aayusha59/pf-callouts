@@ -1,0 +1,439 @@
+:host {
+  all: initial;
+  position: fixed;
+  z-index: 2147483647;
+  font-family: Inter, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 13px;
+  color: #e6e8eb;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Author display:flex on .apc-attach / .apc-stats would otherwise beat the UA [hidden] rule. */
+[hidden] {
+  display: none !important;
+}
+
+.apc-panel {
+  width: 300px;
+  background: #101318;
+  border: 1px solid #262b33;
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+  overflow: hidden;
+}
+
+.apc-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px;
+  background: #151a21;
+  border-bottom: 1px solid #262b33;
+  cursor: grab;
+  user-select: none;
+}
+
+.apc-header:active {
+  cursor: grabbing;
+}
+
+.apc-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: #4ade80;
+  color: #06110a;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.apc-title {
+  font-weight: 600;
+  flex: 1;
+}
+
+.apc-auth {
+  font-size: 11px;
+  color: #8b93a1;
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.apc-auth.ok {
+  color: #4ade80;
+}
+
+.apc-auth.bad {
+  color: #f87171;
+}
+
+.apc-auth a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.apc-icon {
+  background: transparent;
+  border: 0;
+  color: #8b93a1;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+.apc-icon:hover {
+  background: #232935;
+  color: #e6e8eb;
+}
+
+.apc-body {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.apc-panel.collapsed .apc-body {
+  display: none;
+}
+
+.apc-coin {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+}
+
+.apc-coin img {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #1c222b;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.apc-coin img[src=""] {
+  visibility: hidden;
+}
+
+.apc-coin-meta {
+  min-width: 0;
+  flex: 1;
+}
+
+.apc-symbol {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.apc-symbol small {
+  color: #8b93a1;
+  font-weight: 400;
+  margin-left: 4px;
+}
+
+.apc-ca {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #8b93a1;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 11px;
+}
+
+.apc-ca button {
+  background: transparent;
+  border: 1px solid #2c333e;
+  color: #8b93a1;
+  border-radius: 4px;
+  font-size: 10px;
+  padding: 1px 5px;
+  cursor: pointer;
+}
+
+.apc-ca button:hover {
+  color: #e6e8eb;
+  border-color: #3b4452;
+}
+
+.apc-existing {
+  border-left: 2px solid #4ade80;
+  background: #0f1712;
+  border-radius: 0 8px 8px 0;
+  padding: 6px 8px;
+  font-size: 11px;
+  color: #a7b0bd;
+}
+
+.apc-existing-head {
+  color: #4ade80;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.apc-existing-body {
+  white-space: pre-wrap;
+  max-height: 54px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #e6e8eb;
+}
+
+.apc-stats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: #8b93a1;
+  font-variant-numeric: tabular-nums;
+}
+
+.apc-stats span {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.apc-stats b {
+  font-weight: 400;
+  color: #6b7380;
+}
+
+.apc-stats em {
+  font-style: normal;
+  color: #e6e8eb;
+}
+
+.apc-stats .up em {
+  color: #4ade80;
+}
+
+.apc-live {
+  margin-left: auto;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #3d4a42;
+}
+
+.apc-live.on {
+  color: #4ade80;
+}
+
+textarea {
+  width: 100%;
+  min-height: 64px;
+  resize: vertical;
+  background: #0b0e12;
+  border: 1px solid #262b33;
+  border-radius: 8px;
+  color: #e6e8eb;
+  padding: 8px;
+  font: inherit;
+  outline: none;
+}
+
+textarea:focus {
+  border-color: #4ade80;
+}
+
+.apc-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.apc-tools {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.apc-emojis {
+  display: flex;
+  gap: 2px;
+  flex: 1;
+}
+
+.apc-emoji {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: 16px;
+  line-height: 1;
+  padding: 3px 4px;
+  cursor: pointer;
+}
+
+.apc-emoji:hover {
+  background: #1c222b;
+  border-color: #2c333e;
+}
+
+.apc-attach-btn {
+  padding: 4px 8px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.apc-attach {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px;
+  background: #0b0e12;
+  border: 1px solid #262b33;
+  border-radius: 8px;
+}
+
+.apc-attach img {
+  width: 44px;
+  height: 44px;
+  object-fit: cover;
+  border-radius: 6px;
+  background: #1c222b;
+}
+
+.apc-attach-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 11px;
+  color: #8b93a1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.apc-panel.dragging {
+  outline: 2px dashed #4ade80;
+  outline-offset: -2px;
+}
+
+.apc-count {
+  color: #8b93a1;
+  font-size: 11px;
+  flex: 1;
+}
+
+.apc-primary {
+  background: #4ade80;
+  color: #06110a;
+  border: 0;
+  border-radius: 8px;
+  padding: 8px 14px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+}
+
+.apc-primary:hover {
+  background: #6ee7a0;
+}
+
+.apc-primary:disabled {
+  background: #2a3a30;
+  color: #6f7f74;
+  cursor: not-allowed;
+}
+
+.apc-status {
+  min-height: 16px;
+  font-size: 12px;
+  color: #8b93a1;
+  word-break: break-word;
+}
+
+.apc-status.ok {
+  color: #4ade80;
+}
+
+.apc-status.err {
+  color: #f87171;
+}
+
+.apc-status pre {
+  margin: 4px 0 0;
+  padding: 6px;
+  background: #0b0e12;
+  border-radius: 6px;
+  font-size: 10px;
+  max-height: 90px;
+  overflow: auto;
+  white-space: pre-wrap;
+}
+
+details.apc-manual summary {
+  cursor: pointer;
+  color: #8b93a1;
+  font-size: 11px;
+  list-style: none;
+}
+
+details.apc-manual summary::-webkit-details-marker {
+  display: none;
+}
+
+details.apc-manual summary:hover {
+  color: #e6e8eb;
+}
+
+details.apc-manual .apc-row {
+  margin-top: 6px;
+}
+
+.apc-diag {
+  margin: 6px 0 0;
+  padding: 6px;
+  background: #0b0e12;
+  border-radius: 6px;
+  font-size: 10px;
+  line-height: 1.4;
+  color: #c9ced6;
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 160px;
+  overflow: auto;
+}
+
+input {
+  flex: 1;
+  background: #0b0e12;
+  border: 1px solid #262b33;
+  border-radius: 6px;
+  color: #e6e8eb;
+  padding: 6px 8px;
+  font: inherit;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 11px;
+  outline: none;
+  min-width: 0;
+}
+
+input:focus {
+  border-color: #4ade80;
+}
+
+.apc-secondary {
+  background: #1c222b;
+  color: #e6e8eb;
+  border: 1px solid #2c333e;
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.apc-secondary:hover {
+  border-color: #3b4452;
+}
