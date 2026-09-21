@@ -18,6 +18,7 @@ export class Overlay {
   async mount() {
     const host = document.createElement("div");
     host.id = OVERLAY_HOST_ID;
+    host.style.cssText = "position:fixed;z-index:2147483647;right:16px;bottom:16px;";
     const shadow = host.attachShadow({ mode: "open" });
 
     const style = document.createElement("style");

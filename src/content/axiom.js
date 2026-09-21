@@ -8,11 +8,6 @@ import { send } from "../shared/messaging.js";
 import { detectMintFromDom, pairFromUrl } from "./detect.js";
 import { Overlay } from "./overlay.js";
 
-if (!window.__axiomPumpCalloutLoaded) {
-  window.__axiomPumpCalloutLoaded = true;
-  boot();
-}
-
 const state = {
   pair: null,
   mint: null,
@@ -305,4 +300,11 @@ async function submitCallout() {
   const head = res.status ? `pump.fun returned ${res.status}.` : res.error || "Request failed.";
   overlay.setStatus(head + hint, "err", res.data || res.error || null);
   overlay.render(state);
+}
+
+if (!window.__axiomPumpCalloutLoaded) {
+  window.__axiomPumpCalloutLoaded = true;
+  boot().catch((err) => {
+    console.error("[pf-callout] overlay failed to start", err);
+  });
 }

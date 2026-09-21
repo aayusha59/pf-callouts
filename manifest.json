@@ -17,17 +17,18 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://axiom.trade/meme/*", "https://*.axiom.trade/meme/*"],
-      "js": ["src/content/axiom.js"],
-      "type": "module",
+      "matches": ["https://axiom.trade/*", "https://*.axiom.trade/*"],
+      "js": ["src/content/boot.js"],
       "run_at": "document_idle"
     }
   ],
   "web_accessible_resources": [
     {
       "resources": [
-        "src/content/overlay.css",
+        "src/content/axiom.js",
+        "src/content/boot.js",
         "src/content/detect.js",
+        "src/content/overlay.css",
         "src/content/overlay.js",
         "src/shared/constants.js",
         "src/shared/format.js",
