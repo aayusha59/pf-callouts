@@ -14,6 +14,8 @@ export const PUMP_ORIGIN = "https://pump.fun";
 export const PUMP_API = "https://frontend-api-v3.pump.fun";
 export const PUMP_PROFILE_API = "https://profile-api.pump.fun";
 export const DEXSCREENER = "https://api.dexscreener.com/latest/dex";
+export const JUPITER_TOKENS = "https://lite-api.jup.ag/tokens/v2";
+export const GECKO = "https://api.geckoterminal.com/api/v2";
 
 export const PUMP_TAB_PATTERN = "*://*.pump.fun/*";
 
@@ -55,7 +57,7 @@ export const MINT_LINK_PATTERNS = [
  * Paths match the public web client's route contract.
  */
 export const API = {
-  coin: `${PUMP_API}/coins/{{mint}}`,
+  coin: `${PUMP_API}/coins-v2/{{mint}}`,
   me: `${PUMP_API}/auth/my-profile`,
   eligibility: `${PUMP_API}/callout/eligibility/{{mint}}`,
   userMintCallout: `${PUMP_API}/callout/user/{{userId}}/mint/{{mint}}`,
@@ -65,6 +67,9 @@ export const API = {
   walletTokens: `${PUMP_PROFILE_API}/balance/tokens/{{wallet}}?page={{page}}&size=100`,
   dexPair: `${DEXSCREENER}/pairs/solana/{{pair}}`,
   dexToken: `${DEXSCREENER}/tokens/{{token}}`,
+  dexSearch: `${DEXSCREENER}/search?q={{q}}`,
+  jupSearch: `${JUPITER_TOKENS}/search?query={{q}}`,
+  geckoPool: `${GECKO}/networks/solana/pools/{{pair}}`,
 };
 
 export const DEFAULT_TEMPLATE = {

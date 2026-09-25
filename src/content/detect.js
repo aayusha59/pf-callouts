@@ -6,6 +6,16 @@ export function pairFromUrl(pathname = location.pathname) {
   return m ? m[1] : null;
 }
 
+function nearMintLabel(el, addr) {
+  if (!el) return false;
+  const text = el.textContent || "";
+  const idx = text.indexOf(addr);
+  const around = idx >= 0 ? text.slice(Math.max(0, idx - 24), idx + addr.length + 8) : text.slice(0, 80);
+  if (/\bCA\b|Contract|Mint|token address/i.test(around)) return true;
+  const prev = el.previousElementSibling?.textContent || "";
+  return /\bCA\b|Contract|Mint/i.test(prev);
+}
+
 function isChatish(el) {
   if (!el) return false;
   let node = el;
@@ -61,18 +71,27 @@ export function detectMintFromDom({ pair, rejected }) {
     const matches = node.nodeValue.match(BASE58_GLOBAL);
     if (!matches) continue;
     const parent = node.parentElement;
-    const parentText = (parent.parentElement || parent).textContent || "";
-    const nearCaLabel = /(^|\s)CA\b|Contract|Mint/i.test(parentText.slice(0, 40));
+    const nearCaLabel = nearMintLabel(parent, matches[0]);
     if (!nearCaLabel) continue;
     bump(matches[0], { nearCaLabel, inChat: isChatish(parent) });
   }
 
-  for (const el of document.querySelectorAll("[title],[data-value],[data-address],[data-mint],[data-clipboard-text]")) {
+  for (const el of document.querySelectorAll("[title],[data-value],[data-address],[data-mint],[data-token],[data-ca],[data-clipboard-text]")) {
     if (isChatish(el)) continue;
-    for (const attr of ["title", "data-value", "data-address", "data-mint", "data-clipboard-text"]) {
+    for (const attr of ["title", "data-value", "data-address", "data-mint", "data-token", "data-ca", "data-clipboard-text"]) {
       const v = el.getAttribute(attr);
       if (v && BASE58_FULL.test(v.trim())) bump(v.trim(), { nearCaLabel: true });
     }
+  }
+
+  for (const btn of document.querySelectorAll("button,[role='button']")) {
+    if (isChatish(btn)) continue;
+    const label = `${btn.getAttribute("title") || ""} ${btn.getAttribute("aria-label") || ""} ${btn.textContent || ""}`.toLowerCase();
+    if (!/copy|ca|mint|address/.test(label)) continue;
+    const root = btn.parentElement?.parentElement || btn.parentElement;
+    const text = root?.textContent || "";
+    const found = text.match(BASE58_GLOBAL);
+    if (found) bump(found[0], { nearCaLabel: true });
   }
 
   let best = null;

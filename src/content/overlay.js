@@ -226,7 +226,7 @@ export class Overlay {
       return;
     }
     ui.img.src = "";
-    ui.symbol.textContent = state.pair ? "Detecting coin..." : "Open a coin page";
+    ui.symbol.textContent = state.pair ? (state.detectFailed ? "Paste the CA below" : "Detecting coin...") : "Open a coin page";
     ui.ca.textContent = state.pair ? shortAddr(state.pair) : "";
     ui.copy.hidden = true;
     delete ui.copy.dataset.mint;

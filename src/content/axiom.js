@@ -22,10 +22,13 @@ const state = {
   existing: null,
   ineligible: null,
   statsTimer: null,
+  detectFailed: false,
 };
 
 let overlay = null;
 let scanTimer = null;
+let resolveAttempts = 0;
+const MAX_RESOLVE_ATTEMPTS = 5;
 
 async function boot() {
   if (!document.body) {
@@ -54,7 +57,9 @@ async function boot() {
       onRouteChange();
       return;
     }
-    if (state.pair && !state.mintVerified && !state.resolving) resolveMint();
+    if (state.pair && !state.mintVerified && !state.resolving && resolveAttempts < MAX_RESOLVE_ATTEMPTS) {
+      resolveMint();
+    }
   }, 400);
 
   window.addEventListener("popstate", onRouteChange);
@@ -68,6 +73,7 @@ async function boot() {
 
 function scheduleScan() {
   if (state.mintVerified && state.resolvedFor === state.pair && state.mint) return;
+  if (resolveAttempts >= MAX_RESOLVE_ATTEMPTS) return;
   clearTimeout(scanTimer);
   scanTimer = setTimeout(resolveMint, 400);
 }
@@ -75,25 +81,28 @@ function scheduleScan() {
 function onRouteChange() {
   const pair = pairFromUrl();
   if (pair === state.pair && state.mint && state.mintVerified) return;
-  if (pair !== state.pair) {
+  const pairChanged = pair !== state.pair;
+  if (pairChanged) {
     state.mint = null;
     state.coin = null;
     state.existing = null;
     state.ineligible = null;
     state.resolvedFor = null;
     state.mintVerified = false;
+    state.detectFailed = false;
     state.rejected.clear();
+    resolveAttempts = 0;
     overlay.setAttachment(null);
     overlay.resetStats();
     stopStatsPoll();
   }
   state.pair = pair;
   overlay.render(state);
-  overlay.setStatus("Detecting coin...", "");
+  if (pair && !state.mint) overlay.setStatus("Detecting coin...", "");
   if (pair) resolveMint();
 }
 
-async function tryAdopt(candidate, source, { verified = false } = {}) {
+async function tryAdopt(candidate, source, { verified = false, hint = null } = {}) {
   if (!candidate || state.rejected.has(candidate)) return false;
   if (candidate === state.mint) {
     state.resolvedFor = state.pair;
@@ -101,7 +110,12 @@ async function tryAdopt(candidate, source, { verified = false } = {}) {
     return true;
   }
   const pairAtStart = state.pair;
-  const res = await send({ type: "LOOKUP_COIN", mint: candidate });
+  let res = await send({
+    type: "LOOKUP_COIN",
+    mint: candidate,
+    allowUnknown: source === "manual paste",
+  });
+  if (!res.ok && hint) res = { ok: true, coin: hint };
   if (!res.ok) {
     state.rejected.add(candidate);
     return false;
@@ -111,6 +125,7 @@ async function tryAdopt(candidate, source, { verified = false } = {}) {
   state.coin = res.coin;
   state.resolvedFor = state.pair;
   state.mintVerified = verified;
+  state.detectFailed = false;
   state.existing = null;
   state.ineligible = null;
   overlay.resetStats();
@@ -136,14 +151,16 @@ async function refreshCalloutState() {
 async function resolveMint() {
   if (state.resolving) return;
   if (state.mintVerified && state.resolvedFor === state.pair && state.mint) return;
+  if (resolveAttempts >= MAX_RESOLVE_ATTEMPTS) return;
   state.resolving = true;
+  resolveAttempts += 1;
   try {
     const pair = state.pair || pairFromUrl();
     if (pair) {
       const res = await send({ type: "RESOLVE_PAIR", pair });
       if (pairFromUrl() !== pair) return;
       if (res.ok && res.mint) {
-        await tryAdopt(res.mint, "DexScreener", { verified: true });
+        await tryAdopt(res.mint, res.source || "DexScreener", { verified: true, hint: res.coin || null });
         return;
       }
       if (await tryAdopt(pair, "URL", { verified: true })) return;
@@ -153,7 +170,15 @@ async function resolveMint() {
       if (await tryAdopt(fromDom, "page", { verified: false })) return;
     }
     if (!state.mint) {
-      overlay.setStatus("Could not detect the CA yet. Paste it below if it does not appear.", "");
+      const more = resolveAttempts < MAX_RESOLVE_ATTEMPTS;
+      state.detectFailed = !more;
+      overlay.render(state);
+      overlay.setStatus(
+        more
+          ? "Still looking up the CA. Paste it below if you have it."
+          : "Could not detect the CA. Paste the mint address below.",
+        "",
+      );
     }
   } finally {
     state.resolving = false;
@@ -198,7 +223,7 @@ async function useManual(value) {
   state.rejected.delete(value);
   overlay.setStatus("Checking pump.fun...", "");
   const ok = await tryAdopt(value, "manual paste", { verified: true });
-  if (!ok) overlay.setStatus("pump.fun does not know that mint.", "err");
+  if (!ok) overlay.setStatus("That address is not a usable mint.", "err");
   else overlay.clearManual();
 }
 

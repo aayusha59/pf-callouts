@@ -13,19 +13,19 @@ import { installRecorder } from "./recorder.js";
 installOriginRule();
 installRecorder();
 
-chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
-  handleMessage(msg)
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  handleMessage(msg, sender)
     .then((res) => sendResponse(res))
     .catch((err) => sendResponse({ ok: false, error: errMessage(err) }));
   return true;
 });
 
-async function handleMessage(msg) {
+async function handleMessage(msg, sender) {
   switch (msg?.type) {
     case "LOOKUP_COIN":
-      return lookupCoin(msg.mint);
+      return lookupCoin(msg.mint, { allowUnknown: !!msg.allowUnknown });
     case "RESOLVE_PAIR":
-      return resolvePair(msg.pair);
+      return resolvePair(msg.pair, sender?.tab?.id);
     case "AUTH_STATUS":
       return authStatus();
     case "CALLOUT_STATE":

@@ -9,7 +9,9 @@
     "*://*.pump.fun/*",
     "*://axiom.trade/*",
     "*://*.axiom.trade/*",
-    "https://api.dexscreener.com/*"
+    "https://api.dexscreener.com/*",
+    "https://lite-api.jup.ag/*",
+    "https://api.geckoterminal.com/*"
   ],
   "background": {
     "service_worker": "src/background/background.js",
