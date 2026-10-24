@@ -1,6 +1,12 @@
 # Axiom to Pump.fun Callout
 
-Chrome extension (Manifest V3) that posts a pump.fun callout from an axiom.trade coin page without switching tabs.
+Chrome extension that posts a Pump.fun callout from an axiom.trade coin page without switching tabs, opening the Pump.fun app, or webapp & terminal.
+
+This small personal tool of mine made me $2.7k USD from Pumpfun callout rewards in one month, and will continue to make more. No Pump.fun app, webapp, or terminal needed at ALL.
+
+It allows you to callout coins the second you buy them in the same interface, meaning more viewers, tailers, and more profit, because you called it FAST.
+
+<img width="1204" height="368" alt="image" src="https://github.com/user-attachments/assets/8448a97d-c4e8-4525-b36a-811240b44952" />
 
 ## What it does
 
@@ -12,6 +18,9 @@ On `axiom.trade/meme/*` a floating overlay:
 4. Optionally attaches an image (paste, drop, or file picker) and inserts a short emoji row.
 
 You stay signed in to pump.fun in the same Chrome profile. The extension uses that session; it does not store passwords.
+
+<img width="1918" height="594" alt="image (1)" src="https://github.com/user-attachments/assets/4de5d36c-ecb5-4d5a-93fa-275f5e3fc30f" />
+
 
 ## Install
 
