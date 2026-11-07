@@ -31,6 +31,9 @@ export const QUICK_EMOJIS = [
   { label: "sob", char: "\u{1F62D}" },
   { label: "fire", char: "\u{1F525}" },
   { label: "goat", char: "\u{1F410}" },
+  { label: "eyes", char: "\u{1F440}" },
+  { label: "rocket", char: "\u{1F680}" },
+  { label: "exploding_head", char: "\u{1F92F}" },
 ];
 
 /** Program / well-known accounts that appear on every Solana page and are never the coin mint. */
