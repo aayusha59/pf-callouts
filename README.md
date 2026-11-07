@@ -10,9 +10,9 @@ It allows you to callout coins the second you buy them in the same interface, me
 
 ## What it does
 
-On `axiom.trade/meme/*` a floating overlay:
+On `axiom.trade/meme/*` and `axiom.trade/token/*` a floating overlay:
 
-1. Resolves the current coin mint from the pair address in the URL (DexScreener first; the page DOM is a last resort).
+1. Resolves the current coin mint from the address in the URL (DexScreener first; on `/meme/` pages the page DOM is a last resort).
 2. Checks whether you already have a callout on that mint.
 3. Creates a callout, or posts an update (an author reply) if one already exists.
 4. Optionally attaches an image (paste, drop, or file picker) and inserts a short emoji row.
@@ -34,7 +34,7 @@ After updating the files, click **Reload** on the extension card, then refresh a
 ## Use
 
 1. Sign in to [pump.fun](https://pump.fun) in this browser.
-2. Open a coin page on Axiom (`/meme/...`).
+2. Open a coin page on Axiom (`/token/...` or `/meme/...`).
 3. Type a note in the overlay (optional on a first callout; required for an update).
 4. Click **Call out** or **Update callout**.
 

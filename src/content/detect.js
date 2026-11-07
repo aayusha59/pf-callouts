@@ -1,9 +1,17 @@
 import { BASE58_FULL, BASE58_GLOBAL, MINT_LINK_PATTERNS, NOT_A_MINT, OVERLAY_HOST_ID } from "../shared/constants.js";
 
-/** Pair/pool address from a trading-terminal `/meme/{address}` URL. */
+/** Address from a coin URL: the pair/pool on `/meme/{address}`, the mint on `/token/{address}`. */
 export function pairFromUrl(pathname = location.pathname) {
-  const m = pathname.match(/\/meme\/([1-9A-HJ-NP-Za-km-z]{32,44})/);
+  const m = pathname.match(/\/(?:meme|token)\/([1-9A-HJ-NP-Za-km-z]{32,44})/);
   return m ? m[1] : null;
+}
+
+/**
+ * Only `/meme/` URLs hold a pair, so only there can the page reveal a mint the URL lacks.
+ * The scan skips the URL address, so on `/token/{mint}` it could only find a different coin.
+ */
+export function canScanPage(pathname = location.pathname) {
+  return /\/meme\//.test(pathname);
 }
 
 function nearMintLabel(el, addr) {

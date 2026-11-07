@@ -1,11 +1,11 @@
 /**
- * Content-script entry for axiom.trade/meme/* pages.
+ * Content-script entry for axiom.trade coin pages (/meme/* and /token/*).
  * Detects the coin mint, mounts the overlay, and talks to the service worker.
  */
 import { BASE58_FULL, STATS_POLL_MS } from "../shared/constants.js";
 import { shortAddr } from "../shared/format.js";
 import { send } from "../shared/messaging.js";
-import { detectMintFromDom, pairFromUrl } from "./detect.js";
+import { canScanPage, detectMintFromDom, pairFromUrl } from "./detect.js";
 import { Overlay } from "./overlay.js";
 
 const state = {
@@ -98,7 +98,7 @@ function onRouteChange() {
   }
   state.pair = pair;
   overlay.render(state);
-  if (pair && !state.mint) overlay.setStatus("Detecting coin...", "");
+  if (!state.mint) overlay.setStatus(pair ? "Detecting coin..." : "", "");
   if (pair) resolveMint();
 }
 
@@ -156,16 +156,15 @@ async function resolveMint() {
   resolveAttempts += 1;
   try {
     const pair = state.pair || pairFromUrl();
-    if (pair) {
-      const res = await send({ type: "RESOLVE_PAIR", pair });
-      if (pairFromUrl() !== pair) return;
-      if (res.ok && res.mint) {
-        await tryAdopt(res.mint, res.source || "DexScreener", { verified: true, hint: res.coin || null });
-        return;
-      }
-      if (await tryAdopt(pair, "URL", { verified: true })) return;
+    if (!pair) return;
+    const res = await send({ type: "RESOLVE_PAIR", pair });
+    if (pairFromUrl() !== pair) return;
+    if (res.ok && res.mint) {
+      await tryAdopt(res.mint, res.source || "DexScreener", { verified: true, hint: res.coin || null });
+      return;
     }
-    if (!state.mint) {
+    if (await tryAdopt(pair, "URL", { verified: true })) return;
+    if (!state.mint && canScanPage()) {
       const fromDom = detectMintFromDom({ pair: state.pair, rejected: state.rejected });
       if (await tryAdopt(fromDom, "page", { verified: false })) return;
     }
