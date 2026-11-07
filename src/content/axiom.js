@@ -23,6 +23,8 @@ const state = {
   ineligible: null,
   statsTimer: null,
   detectFailed: false,
+  /** Set once the extension reloads: this tab's script can no longer reach the service worker. */
+  contextLost: false,
 };
 
 let overlay = null;
@@ -51,7 +53,12 @@ async function boot() {
   });
 
   let lastHref = location.href;
-  setInterval(() => {
+  const routeTimer = setInterval(() => {
+    if (!chrome.runtime?.id) {
+      clearInterval(routeTimer);
+      onContextLost();
+      return;
+    }
     if (location.href !== lastHref) {
       lastHref = location.href;
       onRouteChange();
@@ -71,7 +78,22 @@ async function boot() {
   });
 }
 
+function onContextLost() {
+  state.contextLost = true;
+  state.pair = null;
+  state.mint = null;
+  state.coin = null;
+  state.existing = null;
+  state.ineligible = null;
+  clearTimeout(scanTimer);
+  stopStatsPoll();
+  overlay.resetStats();
+  overlay.render(state);
+  overlay.setStatus("The extension was reloaded. Refresh this page to keep using it.", "err");
+}
+
 function scheduleScan() {
+  if (state.contextLost) return;
   if (state.mintVerified && state.resolvedFor === state.pair && state.mint) return;
   if (resolveAttempts >= MAX_RESOLVE_ATTEMPTS) return;
   clearTimeout(scanTimer);
@@ -79,6 +101,7 @@ function scheduleScan() {
 }
 
 function onRouteChange() {
+  if (state.contextLost) return;
   const pair = pairFromUrl();
   if (pair === state.pair && state.mint && state.mintVerified) return;
   const pairChanged = pair !== state.pair;
@@ -149,7 +172,7 @@ async function refreshCalloutState() {
 }
 
 async function resolveMint() {
-  if (state.resolving) return;
+  if (state.contextLost || state.resolving) return;
   if (state.mintVerified && state.resolvedFor === state.pair && state.mint) return;
   if (resolveAttempts >= MAX_RESOLVE_ATTEMPTS) return;
   state.resolving = true;
@@ -215,6 +238,7 @@ async function refreshAuth() {
 }
 
 async function useManual(value) {
+  if (state.contextLost) return;
   if (!BASE58_FULL.test(value)) {
     overlay.setStatus("That does not look like a Solana address.", "err");
     return;

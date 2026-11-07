@@ -1,4 +1,4 @@
-import { MAX_IMAGE_BYTES, MAX_MESSAGE_LEN, OVERLAY_HOST_ID, QUICK_EMOJIS } from "../shared/constants.js";
+import { MAX_IMAGE_BYTES, MAX_MESSAGE_LEN, OVERLAY_HOST_ID, PUMP_COIN_IMAGE, QUICK_EMOJIS } from "../shared/constants.js";
 import { fmtBytes, fmtStat, fmtUsd, shortAddr, timeAgo } from "../shared/format.js";
 
 /**
@@ -13,6 +13,8 @@ export class Overlay {
     this.ui = null;
     this.image = null;
     this.lastStats = null;
+    this.coinImageKey = null;
+    this.coinImageQueue = [];
   }
 
   async mount() {
@@ -209,11 +211,25 @@ export class Overlay {
     reader.readAsDataURL(file);
   }
 
+  /**
+   * Stored image links can sit on public IPFS gateways that answer an <img> with a
+   * Cloudflare challenge. The pump.fun host avoids that, but it serves a generic
+   * placeholder for unknown addresses instead of an error, so it only leads for pump mints.
+   */
+  #showCoinImage(mint, stored) {
+    const key = `${mint}|${stored}`;
+    if (key === this.coinImageKey) return;
+    this.coinImageKey = key;
+    const hosted = `${PUMP_COIN_IMAGE}/${mint}?variant=86x86`;
+    this.coinImageQueue = (mint.endsWith("pump") ? [hosted, stored] : [stored, hosted]).filter(Boolean);
+    this.ui.img.style.visibility = "";
+    this.ui.img.src = this.coinImageQueue.shift();
+  }
+
   #renderCoin(state) {
     const { ui } = this;
     if (state.coin) {
-      ui.img.style.visibility = state.coin.image ? "" : "hidden";
-      ui.img.src = state.coin.image || "";
+      this.#showCoinImage(state.mint, state.coin.image || "");
       const label = state.coin.symbol || state.coin.name || "Coin";
       ui.symbol.replaceChildren(label);
       const small = document.createElement("small");
@@ -225,8 +241,16 @@ export class Overlay {
       ui.copy.dataset.mint = state.mint || "";
       return;
     }
+    this.coinImageKey = null;
+    this.coinImageQueue = [];
     ui.img.src = "";
-    ui.symbol.textContent = state.pair ? (state.detectFailed ? "Paste the CA below" : "Detecting coin...") : "Open a coin page";
+    ui.symbol.textContent = state.contextLost
+      ? "Refresh this page"
+      : state.pair
+        ? state.detectFailed
+          ? "Paste the CA below"
+          : "Detecting coin..."
+        : "Open a coin page";
     ui.ca.textContent = state.pair ? shortAddr(state.pair) : "";
     ui.copy.hidden = true;
     delete ui.copy.dataset.mint;
@@ -324,7 +348,9 @@ export class Overlay {
     ui.callout.addEventListener("click", () => this.onSubmit());
     ui.useManual.addEventListener("click", () => this.onManualMint(ui.manual.value.trim()));
     ui.img.addEventListener("error", () => {
-      ui.img.style.visibility = "hidden";
+      const next = this.coinImageQueue.shift();
+      if (next) ui.img.src = next;
+      else ui.img.style.visibility = "hidden";
     });
     ui.copy.addEventListener("click", () => {
       const mint = ui.copy.dataset.mint;

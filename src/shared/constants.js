@@ -13,6 +13,7 @@ export const BASE58_GLOBAL = /[1-9A-HJ-NP-Za-km-z]{32,44}/g;
 export const PUMP_ORIGIN = "https://pump.fun";
 export const PUMP_API = "https://frontend-api-v3.pump.fun";
 export const PUMP_PROFILE_API = "https://profile-api.pump.fun";
+export const PUMP_COIN_IMAGE = "https://images.pump.fun/coin-image";
 export const DEXSCREENER = "https://api.dexscreener.com/latest/dex";
 export const JUPITER_TOKENS = "https://lite-api.jup.ag/tokens/v2";
 export const GECKO = "https://api.geckoterminal.com/api/v2";
