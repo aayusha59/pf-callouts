@@ -390,6 +390,36 @@ textarea:focus {
   cursor: not-allowed;
 }
 
+/* On FOMO the post button is fomo purple, like the switch and the icon. */
+.apc-panel[data-dest="fomo"] .apc-primary {
+  background: #a78bfa;
+  color: #140b2b;
+}
+
+.apc-panel[data-dest="fomo"] .apc-primary:hover {
+  background: #c4b5fd;
+}
+
+.apc-panel[data-dest="fomo"] .apc-primary:disabled {
+  background: #2f2a45;
+  color: #7f7898;
+}
+
+/* Same for the other accents: field focus and your latest thesis. Status greens stay green. */
+.apc-panel[data-dest="fomo"] textarea:focus,
+.apc-panel[data-dest="fomo"] input:focus {
+  border-color: #a78bfa;
+}
+
+.apc-panel[data-dest="fomo"] .apc-existing {
+  border-left-color: #a78bfa;
+  background: #15121f;
+}
+
+.apc-panel[data-dest="fomo"] .apc-existing-head {
+  color: #a78bfa;
+}
+
 .apc-status {
   min-height: 16px;
   font-size: 12px;

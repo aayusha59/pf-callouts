@@ -123,6 +123,7 @@ export class Overlay {
     // On fomo it's a thesis, not a callout. The saved choice can load after the first
     // render, so redraw the labels here instead of waiting for the next one.
     ui.title.textContent = fomo ? "Thesis" : "Callout";
+    ui.panel.dataset.dest = this.dest;
     const state = this.lastState || {};
     this.#renderExisting(state);
     this.#renderButton(state);
