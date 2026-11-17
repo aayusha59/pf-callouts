@@ -20,6 +20,13 @@ export const GECKO = "https://api.geckoterminal.com/api/v2";
 
 export const PUMP_TAB_PATTERN = "*://*.pump.fun/*";
 
+/** fomo.family: a thesis is a comment on the user's trade for that coin. */
+export const FOMO_ORIGIN = "https://fomo.family";
+export const FOMO_API = "https://prod-api.fomo.family";
+export const FOMO_TAB_PATTERN = "*://fomo.family/*";
+export const FOMO_SOLANA_NETWORK = 1399811149;
+export const FOMO_MAX_THESIS_LEN = 3000;
+
 export const MAX_MESSAGE_LEN = 280;
 export const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 export const STATS_POLL_MS = 3000;

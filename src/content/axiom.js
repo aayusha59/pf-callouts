@@ -2,7 +2,7 @@
  * Content-script entry for axiom.trade coin pages (/meme/* and /token/*).
  * Detects the coin mint, mounts the overlay, and talks to the service worker.
  */
-import { BASE58_FULL, STATS_POLL_MS } from "../shared/constants.js";
+import { BASE58_FULL, MAX_MESSAGE_LEN, STATS_POLL_MS } from "../shared/constants.js";
 import { shortAddr } from "../shared/format.js";
 import { send } from "../shared/messaging.js";
 import { canScanPage, detectMintFromDom, pairFromUrl } from "./detect.js";
@@ -41,6 +41,14 @@ async function boot() {
     onSubmit: submitCallout,
     onManualMint: useManual,
     onDiagnose: runDiagnosis,
+    onDestChange: () => {
+      overlay.setStatus("", "");
+      overlay.resetStats();
+      overlay.render(state);
+      syncStatsPoll();
+      refreshAuth();
+      if (overlay.getDest() === "fomo") refreshFomoState();
+    },
   });
   await overlay.mount();
   onRouteChange();
@@ -71,7 +79,7 @@ async function boot() {
 
   window.addEventListener("popstate", onRouteChange);
   document.addEventListener("visibilitychange", () => {
-    if (!document.hidden && state.existing) syncStatsPoll();
+    if (!document.hidden && (state.existing || state.fomoExisting)) syncStatsPoll();
   });
   chrome.storage.onChanged.addListener((changes) => {
     if ("calloutTemplate" in changes || "transport" in changes) refreshAuth();
@@ -109,6 +117,7 @@ function onRouteChange() {
     state.mint = null;
     state.coin = null;
     state.existing = null;
+    state.fomoExisting = null;
     state.ineligible = null;
     state.resolvedFor = null;
     state.mintVerified = false;
@@ -150,13 +159,26 @@ async function tryAdopt(candidate, source, { verified = false, hint = null } = {
   state.mintVerified = verified;
   state.detectFailed = false;
   state.existing = null;
+  state.fomoExisting = null;
   state.ineligible = null;
   overlay.resetStats();
   stopStatsPoll();
   overlay.render(state);
   overlay.setStatus(`Detected via ${source}`, "");
   refreshCalloutState();
+  if (overlay.getDest() === "fomo") refreshFomoState();
   return true;
+}
+
+/** Your latest Fomo thesis on this coin, so its likes and views can show. */
+async function refreshFomoState() {
+  const mint = state.mint;
+  if (!mint) return;
+  const res = await send({ type: "FOMO_THESIS_STATE", mint });
+  if (state.mint !== mint || !res.ok) return;
+  state.fomoExisting = res.existing || null;
+  overlay.render(state);
+  if (overlay.getDest() === "fomo") syncStatsPoll();
 }
 
 async function refreshCalloutState() {
@@ -215,6 +237,10 @@ function stopStatsPoll() {
 
 function syncStatsPoll() {
   stopStatsPoll();
+  if (overlay.getDest() === "fomo") {
+    syncFomoStatsPoll();
+    return;
+  }
   const id = state.existing?.calloutId;
   if (!id) return;
   overlay.setLive(true);
@@ -231,10 +257,56 @@ function syncStatsPoll() {
   tick();
 }
 
+function syncFomoStatsPoll() {
+  const id = state.fomoExisting?.thesisId;
+  if (!id) return;
+  overlay.setLive(true);
+  const tick = async () => {
+    if (document.hidden) return;
+    if (state.fomoExisting?.thesisId !== id || overlay.getDest() !== "fomo") return;
+    const res = await send({ type: "FOMO_THESIS_STATS", thesisId: id });
+    if (!res.ok || state.fomoExisting?.thesisId !== id || overlay.getDest() !== "fomo") return;
+    state.fomoExisting = { ...state.fomoExisting, likes: res.likes, views: res.views };
+    overlay.renderStats(state.fomoExisting);
+  };
+  state.statsTimer = setInterval(tick, STATS_POLL_MS);
+  tick();
+}
+
 async function refreshAuth() {
-  const res = await send({ type: "AUTH_STATUS" });
+  const dest = overlay.getDest();
+  const res = await send({ type: dest === "fomo" ? "FOMO_AUTH" : "AUTH_STATUS" });
+  if (overlay.getDest() !== dest) return;
   state.auth = res;
-  overlay.renderAuth(res);
+  overlay.renderAuth(res, dest);
+}
+
+async function submitThesis() {
+  if (state.busy || !state.mint) return;
+  const content = overlay.getMessage();
+  if (!content) {
+    overlay.setStatus("Type your thesis first.", "err");
+    overlay.focusMessage();
+    return;
+  }
+  state.busy = true;
+  overlay.render(state);
+  overlay.setStatus("Posting thesis to Fomo...", "");
+
+  const mint = state.mint;
+  const res = await send({ type: "FOMO_THESIS", mint, content });
+  state.busy = false;
+  overlay.render(state);
+  if (state.mint !== mint) return;
+
+  if (res.ok) {
+    const name = state.coin ? state.coin.symbol : shortAddr(mint);
+    overlay.setStatus(`Thesis posted to Fomo for ${name} (${res.via}).`, "ok");
+    overlay.clearComposer();
+    refreshFomoState();
+    return;
+  }
+  overlay.setStatus(res.error || "Fomo request failed.", "err", res.data || null);
 }
 
 async function useManual(value) {
@@ -301,8 +373,13 @@ async function runDiagnosis() {
 }
 
 async function submitCallout() {
+  if (overlay.getDest() === "fomo") return submitThesis();
   if (state.busy || !state.mint || state.ineligible) return;
   const content = overlay.getMessage();
+  if (content.length > MAX_MESSAGE_LEN) {
+    overlay.setStatus(`pump.fun takes up to ${MAX_MESSAGE_LEN} characters; this is ${content.length}.`, "err");
+    return;
+  }
   if (state.existing && !content) {
     overlay.setStatus("Type your update first.", "err");
     overlay.focusMessage();

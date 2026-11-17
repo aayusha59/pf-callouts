@@ -51,6 +51,47 @@
   letter-spacing: 0.04em;
 }
 
+.apc-dest {
+  display: inline-flex;
+  gap: 1px;
+  padding: 1px;
+  border-radius: 7px;
+  background: #0b0e12;
+  border: 1px solid #262b33;
+}
+
+.apc-dest button {
+  padding: 2px 6px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: #8b93a1;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.apc-dest button:hover {
+  color: #e6e8eb;
+}
+
+.apc-dest button:focus-visible {
+  outline: 2px solid #5b8cff;
+  outline-offset: 1px;
+}
+
+.apc-dest button[data-dest-btn="pump"][aria-pressed="true"] {
+  background: #4ade80;
+  color: #06110a;
+}
+
+.apc-dest button[data-dest-btn="fomo"][aria-pressed="true"] {
+  background: #a78bfa;
+  color: #140b2b;
+}
+
 .apc-title {
   font-weight: 600;
   flex: 1;
