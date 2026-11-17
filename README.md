@@ -44,6 +44,18 @@ There is no local cooldown. Eligibility and duplicate handling come from the pum
 
 Live likes, views, replies, shares, and quotes refresh every few seconds while a callout of yours is on the current coin.
 
+## Posting to Fomo
+
+The **PUMP / FOMO** switch in the overlay header picks where the post goes. The choice is remembered.
+
+On **FOMO**, the post becomes a thesis on fomo.family:
+
+- Sign in to [fomo.family](https://fomo.family) in this browser.
+- Fomo attaches a thesis to your trade on that coin, so your wallet needs a trade on it: open, or sold less than 3 hours ago.
+- Up to 3,000 characters. No images yet, so the image button is hidden.
+- Your latest thesis on the coin shows with its likes and views, refreshed every few seconds. Fomo doesn't count replies, shares or quotes on a thesis.
+- Path: `GET /v2/users/current`, then `GET /trades?userId&tokenAddress&networkId` to find the trade, then `POST /trades/comment` with `{ tradeId, comment, visibility: "public" }` on `prod-api.fomo.family`. If the direct call is refused, it runs inside an open fomo.family tab.
+
 ## Hidden callouts
 
 A callout can exist and still not appear on the public coin page. The listing site hides it when the author's tracked position is closed (exited, or held amount is 0) on the pump.fun session wallet.

@@ -1,7 +1,7 @@
 /**
- * Authenticated pump.fun transport: service-worker fetch, then a tab fallback.
+ * Authenticated pump.fun and fomo.family transport: service-worker fetch, then a tab fallback.
  */
-import { PUMP_ORIGIN, PUMP_TAB_PATTERN } from "../shared/constants.js";
+import { FOMO_ORIGIN, FOMO_TAB_PATTERN, PUMP_ORIGIN, PUMP_TAB_PATTERN } from "../shared/constants.js";
 import { errMessage } from "../shared/format.js";
 import { request } from "../shared/http.js";
 
@@ -32,7 +32,7 @@ export async function pumpCall(url, init) {
   const retry = transport !== "direct" && !res.ok && (res.status === 0 || res.status === 401 || corsBlocked);
   if (retry) {
     const createIfMissing = res.status === 0 || corsBlocked || transport === "tab";
-    const viaTab = await runInPumpTab(url, init, { createIfMissing });
+    const viaTab = await runInTab(PUMP_TAB_PATTERN, PUMP_ORIGIN, url, init, { createIfMissing });
     if (viaTab) {
       res = viaTab;
       via = "tab";
@@ -41,12 +41,31 @@ export async function pumpCall(url, init) {
   return { ...res, via };
 }
 
-async function runInPumpTab(url, init, { createIfMissing }) {
-  let [tab] = await chrome.tabs.query({ url: PUMP_TAB_PATTERN });
+/**
+ * fomo.family calls. The web app signs in with cookies, which a direct call carries.
+ * When they have expired (401) or the call is refused, retry inside a fomo.family tab,
+ * where the app keeps the login fresh. Status checks pass createTab: false so a
+ * background tab is only opened when actually posting.
+ */
+export async function fomoCall(url, init, { createTab = false } = {}) {
+  let res = await request(url, init);
+  let via = "direct";
+  if (!res.ok && (res.status === 0 || res.status === 401 || res.status === 403)) {
+    const viaTab = await runInTab(FOMO_TAB_PATTERN, FOMO_ORIGIN, url, init, { createIfMissing: createTab });
+    if (viaTab) {
+      res = viaTab;
+      via = "tab";
+    }
+  }
+  return { ...res, via };
+}
+
+async function runInTab(pattern, origin, url, init, { createIfMissing }) {
+  let [tab] = await chrome.tabs.query({ url: pattern });
   let created = false;
   if (!tab) {
     if (!createIfMissing) return null;
-    tab = await chrome.tabs.create({ url: `${PUMP_ORIGIN}/`, active: false });
+    tab = await chrome.tabs.create({ url: `${origin}/`, active: false });
     created = true;
     await waitForTabComplete(tab.id, 20000);
   }

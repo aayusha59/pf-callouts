@@ -7,6 +7,8 @@
   "permissions": ["storage", "scripting", "tabs", "webRequest", "declarativeNetRequest"],
   "host_permissions": [
     "*://*.pump.fun/*",
+    "*://fomo.family/*",
+    "*://*.fomo.family/*",
     "*://axiom.trade/*",
     "*://*.axiom.trade/*",
     "https://api.dexscreener.com/*",

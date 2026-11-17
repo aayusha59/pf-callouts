@@ -7,6 +7,7 @@ import { deriveTemplate, saveTemplate } from "../shared/template.js";
 import { authStatus, calloutState, createCallout, getCallout } from "./callouts.js";
 import { lookupCoin, resolvePair } from "./coins.js";
 import { diagnosePosition } from "./diagnose.js";
+import { fomoAuth, fomoThesisState, fomoThesisStats, postFomoThesis } from "./fomo.js";
 import { installOriginRule } from "./origin.js";
 import { installRecorder } from "./recorder.js";
 
@@ -34,6 +35,14 @@ async function handleMessage(msg, sender) {
       return getCallout(msg.calloutId);
     case "CREATE_CALLOUT":
       return createCallout(msg.mint, msg.content, msg.image || null);
+    case "FOMO_AUTH":
+      return fomoAuth();
+    case "FOMO_THESIS":
+      return postFomoThesis(msg.mint, msg.content);
+    case "FOMO_THESIS_STATE":
+      return fomoThesisState(msg.mint);
+    case "FOMO_THESIS_STATS":
+      return fomoThesisStats(msg.thesisId);
     case "DIAGNOSE_POSITION":
       return diagnosePosition(msg.mint);
     case "GET_CAPTURES": {

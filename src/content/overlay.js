@@ -1,4 +1,11 @@
-import { MAX_IMAGE_BYTES, MAX_MESSAGE_LEN, OVERLAY_HOST_ID, PUMP_COIN_IMAGE, QUICK_EMOJIS } from "../shared/constants.js";
+import {
+  FOMO_MAX_THESIS_LEN,
+  MAX_IMAGE_BYTES,
+  MAX_MESSAGE_LEN,
+  OVERLAY_HOST_ID,
+  PUMP_COIN_IMAGE,
+  QUICK_EMOJIS,
+} from "../shared/constants.js";
 import { fmtBytes, fmtStat, fmtUsd, shortAddr, timeAgo } from "../shared/format.js";
 
 /**
@@ -6,10 +13,13 @@ import { fmtBytes, fmtStat, fmtUsd, shortAddr, timeAgo } from "../shared/format.
  * Coin/auth/callout state is owned by the boot script; this module owns the DOM.
  */
 export class Overlay {
-  constructor({ onSubmit, onManualMint, onDiagnose }) {
+  constructor({ onSubmit, onManualMint, onDiagnose, onDestChange }) {
     this.onSubmit = onSubmit;
     this.onManualMint = onManualMint;
     this.onDiagnose = onDiagnose;
+    this.onDestChange = onDestChange;
+    /** Where "Call out" posts: "pump" (pump.fun callout) or "fomo" (fomo.family thesis). */
+    this.dest = "pump";
     this.ui = null;
     this.image = null;
     this.lastStats = null;
@@ -41,6 +51,7 @@ export class Overlay {
       host,
       panel: q(".apc-panel"),
       header: q("[data-drag]"),
+      destButtons: [...shadow.querySelectorAll("[data-dest-btn]")],
       auth: q("[data-auth]"),
       collapse: q("[data-collapse]"),
       img: q("[data-img]"),
@@ -83,6 +94,37 @@ export class Overlay {
     return this.ui?.msg.value.trim() || "";
   }
 
+  getDest() {
+    return this.dest;
+  }
+
+  #maxLen() {
+    return this.dest === "fomo" ? FOMO_MAX_THESIS_LEN : MAX_MESSAGE_LEN;
+  }
+
+  #updateCount() {
+    this.ui.count.textContent = `${this.ui.msg.value.length}/${this.#maxLen()}`;
+  }
+
+  #setDest(dest, save) {
+    this.dest = dest === "fomo" ? "fomo" : "pump";
+    const fomo = this.dest === "fomo";
+    const { ui } = this;
+    for (const button of ui.destButtons) {
+      button.setAttribute("aria-pressed", String(button.dataset.destBtn === this.dest));
+    }
+    ui.msg.maxLength = this.#maxLen();
+    this.#updateCount();
+    // Fomo doesn't take images yet, and the hidden-callout check is pump-only.
+    ui.attachBtn.hidden = fomo;
+    if (fomo) this.setAttachment(null);
+    ui.diagnose.hidden = fomo;
+    if (save) {
+      chrome.storage.local.set({ calloutDest: this.dest });
+      this.onDestChange?.(this.dest);
+    }
+  }
+
   getImage() {
     if (!this.image) return null;
     return { name: this.image.name, type: this.image.type, dataUrl: this.image.dataUrl };
@@ -91,7 +133,7 @@ export class Overlay {
   clearComposer() {
     if (!this.ui) return;
     this.ui.msg.value = "";
-    this.ui.count.textContent = `0/${MAX_MESSAGE_LEN}`;
+    this.#updateCount();
     this.setAttachment(null);
   }
 
@@ -124,23 +166,24 @@ export class Overlay {
     }
   }
 
-  renderAuth(res) {
+  renderAuth(res, dest = "pump") {
     if (!this.ui) return;
+    const site = dest === "fomo" ? "fomo.family" : "pump.fun";
     if (res.ok && res.loggedIn) {
       this.ui.auth.className = "apc-auth ok";
-      this.ui.auth.textContent = res.user.username ? `@${res.user.username}` : "signed in";
-      this.ui.auth.title = `pump.fun session detected (${res.via})`;
+      this.ui.auth.textContent = "signed in";
+      this.ui.auth.title = `Signed in to ${site}${res.user.username ? ` as @${res.user.username}` : ""} (${res.via})`;
       return;
     }
     this.ui.auth.className = "apc-auth bad";
     this.ui.auth.replaceChildren();
     const a = document.createElement("a");
-    a.href = "https://pump.fun/";
+    a.href = `https://${site}/`;
     a.target = "_blank";
     a.rel = "noopener";
-    a.textContent = "sign in to pump.fun";
+    a.textContent = `sign in to ${dest === "fomo" ? "fomo" : "pump.fun"}`;
     this.ui.auth.appendChild(a);
-    this.ui.auth.title = res.error || `pump.fun returned ${res.status}`;
+    this.ui.auth.title = res.error || `${site} returned ${res.status}`;
   }
 
   render(state) {
@@ -152,11 +195,16 @@ export class Overlay {
 
   renderStats(existing) {
     if (!this.ui) return;
-    if (!existing?.calloutId) {
+    if (!existing?.calloutId && !existing?.thesisId) {
       this.ui.stats.hidden = true;
       return;
     }
     this.ui.stats.hidden = false;
+    // Fomo only counts likes and views on a thesis.
+    const fomo = this.dest === "fomo";
+    for (const key of ["replies", "shares", "quotes"]) {
+      this.ui.stat[key].parentElement.hidden = fomo;
+    }
     const next = {
       likes: existing.likes ?? 0,
       views: existing.views ?? 0,
@@ -175,7 +223,7 @@ export class Overlay {
 
     const head = this.ui.existing.querySelector(".apc-existing-head");
     if (head) {
-      head.textContent = existingHeadline(existing);
+      head.textContent = existingHeadline(existing, this.dest);
     }
   }
 
@@ -185,6 +233,10 @@ export class Overlay {
 
   setAttachment(file) {
     if (!this.ui) return;
+    if (file && this.dest === "fomo") {
+      this.setStatus("Fomo doesn't take images yet. Switch to PUMP to attach one.", "err");
+      return;
+    }
     if (!file) {
       this.image = null;
       this.ui.attach.hidden = true;
@@ -258,6 +310,29 @@ export class Overlay {
 
   #renderExisting(state) {
     const { ui } = this;
+    if (this.dest === "fomo") {
+      // Pump's callout and eligibility don't apply; show your latest Fomo thesis instead.
+      const thesis = state.fomoExisting;
+      if (thesis) {
+        ui.existing.hidden = false;
+        ui.existing.replaceChildren();
+        const head = document.createElement("div");
+        head.className = "apc-existing-head";
+        head.textContent = existingHeadline(thesis, "fomo");
+        const body = document.createElement("div");
+        body.className = "apc-existing-body";
+        body.textContent = thesis.thesis || "(no text)";
+        ui.existing.append(head, body);
+        ui.msg.placeholder = "Post an updated thesis...";
+        this.renderStats(thesis);
+        return;
+      }
+      ui.existing.hidden = true;
+      ui.existing.textContent = "";
+      ui.msg.placeholder = "Why are you in this? Posts as your Fomo thesis.";
+      this.renderStats(null);
+      return;
+    }
     if (state.existing) {
       ui.existing.hidden = false;
       ui.existing.replaceChildren();
@@ -287,6 +362,11 @@ export class Overlay {
 
   #renderButton(state) {
     const { ui } = this;
+    if (this.dest === "fomo") {
+      ui.callout.textContent = state.busy ? "Posting..." : state.fomoExisting ? "Update thesis" : "Post thesis";
+      ui.callout.disabled = state.busy || !state.mint;
+      return;
+    }
     ui.callout.textContent = state.busy ? "Posting..." : state.existing ? "Update callout" : "Call out";
     ui.callout.disabled = state.busy || !state.mint || !!state.ineligible;
   }
@@ -295,9 +375,12 @@ export class Overlay {
     const { ui } = this;
 
     ui.diagnose.addEventListener("click", () => this.onDiagnose());
-    ui.msg.addEventListener("input", () => {
-      ui.count.textContent = `${ui.msg.value.length}/${MAX_MESSAGE_LEN}`;
-    });
+    for (const button of ui.destButtons) {
+      button.addEventListener("click", () => {
+        if (button.dataset.destBtn !== this.dest) this.#setDest(button.dataset.destBtn, true);
+      });
+    }
+    ui.msg.addEventListener("input", () => this.#updateCount());
     ui.msg.addEventListener("keydown", (e) => {
       e.stopPropagation();
       if ((e.ctrlKey || e.metaKey) && e.key === "Enter") this.onSubmit();
@@ -372,12 +455,12 @@ export class Overlay {
     const start = el.selectionStart ?? el.value.length;
     const end = el.selectionEnd ?? el.value.length;
     const next = el.value.slice(0, start) + text + el.value.slice(end);
-    if (next.length > MAX_MESSAGE_LEN) return;
+    if (next.length > this.#maxLen()) return;
     el.value = next;
     const pos = start + text.length;
     el.setSelectionRange(pos, pos);
     el.focus();
-    this.ui.count.textContent = `${el.value.length}/${MAX_MESSAGE_LEN}`;
+    this.#updateCount();
   }
 
   #setupDrag() {
@@ -416,8 +499,9 @@ export class Overlay {
   }
 
   async #restorePrefs() {
-    const prefs = await chrome.storage.local.get(["overlayPos", "overlayCollapsed", "defaultMessage"]);
+    const prefs = await chrome.storage.local.get(["overlayPos", "overlayCollapsed", "defaultMessage", "calloutDest"]);
     this.#applyPosition(prefs.overlayPos);
+    this.#setDest(prefs.calloutDest, false);
     if (prefs.overlayCollapsed) {
       this.ui.panel.classList.add("collapsed");
       this.ui.collapse.textContent = "+";
@@ -426,9 +510,9 @@ export class Overlay {
   }
 }
 
-function existingHeadline(e) {
+function existingHeadline(e, dest = "pump") {
   const updates = e.updateCount ? ` \u00b7 ${e.updateCount} update${e.updateCount === 1 ? "" : "s"}` : "";
-  return `Your callout ${timeAgo(e.createdAt)}${updates}`;
+  return `Your ${dest === "fomo" ? "thesis" : "callout"} ${timeAgo(e.createdAt)}${updates}`;
 }
 
 function panelHtml() {
@@ -438,7 +522,10 @@ function panelHtml() {
   return `
       <div class="apc-panel">
         <div class="apc-header" data-drag>
-          <span class="apc-badge">PUMP</span>
+          <span class="apc-dest" role="group" aria-label="Post to">
+            <button type="button" data-dest-btn="pump" aria-pressed="true" title="Post a pump.fun callout">PUMP</button>
+            <button type="button" data-dest-btn="fomo" aria-pressed="false" title="Post a Fomo thesis">FOMO</button>
+          </span>
           <span class="apc-title">Callout</span>
           <span class="apc-auth" data-auth>checking...</span>
           <button class="apc-icon" data-collapse title="Collapse">&#8722;</button>
