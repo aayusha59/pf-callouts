@@ -54,6 +54,7 @@ export class Overlay {
       destButtons: [...shadow.querySelectorAll("[data-dest-btn]")],
       auth: q("[data-auth]"),
       collapse: q("[data-collapse]"),
+      title: q(".apc-title"),
       img: q("[data-img]"),
       symbol: q("[data-symbol]"),
       ca: q("[data-ca]"),
@@ -119,6 +120,12 @@ export class Overlay {
     ui.attachBtn.hidden = fomo;
     if (fomo) this.setAttachment(null);
     ui.diagnose.hidden = fomo;
+    // On fomo it's a thesis, not a callout. The saved choice can load after the first
+    // render, so redraw the labels here instead of waiting for the next one.
+    ui.title.textContent = fomo ? "Thesis" : "Callout";
+    const state = this.lastState || {};
+    this.#renderExisting(state);
+    this.#renderButton(state);
     if (save) {
       chrome.storage.local.set({ calloutDest: this.dest });
       this.onDestChange?.(this.dest);
@@ -188,6 +195,7 @@ export class Overlay {
 
   render(state) {
     if (!this.ui) return;
+    this.lastState = state;
     this.#renderCoin(state);
     this.#renderExisting(state);
     this.#renderButton(state);
@@ -323,13 +331,13 @@ export class Overlay {
         body.className = "apc-existing-body";
         body.textContent = thesis.thesis || "(no text)";
         ui.existing.append(head, body);
-        ui.msg.placeholder = "Post an updated thesis...";
+        ui.msg.placeholder = "Post an update to your thesis...";
         this.renderStats(thesis);
         return;
       }
       ui.existing.hidden = true;
       ui.existing.textContent = "";
-      ui.msg.placeholder = "Why are you in this? Posts as your Fomo thesis.";
+      ui.msg.placeholder = "Why are you in this?";
       this.renderStats(null);
       return;
     }
