@@ -1,4 +1,4 @@
-# Axiom to Pump.fun Callout
+# Social Trading Overlay
 
 Chrome extension that posts a Pump.fun callout from an axiom.trade coin page without switching tabs, opening the Pump.fun app, or webapp & terminal.
 

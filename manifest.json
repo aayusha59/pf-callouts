@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "Axiom to Pump.fun Callout",
+  "name": "Social Trading Overlay",
   "version": "1.0.0",
   "minimum_chrome_version": "120",
-  "description": "Floating overlay on axiom.trade that detects the current coin mint and posts a pump.fun callout without leaving the page.",
+  "description": "Floating overlay on axiom.trade that detects the current coin mint and posts a pump.fun callout or fomo thesis without leaving the page.",
   "permissions": ["storage", "scripting", "tabs", "webRequest", "declarativeNetRequest"],
   "host_permissions": [
     "*://*.pump.fun/*",
@@ -43,6 +43,6 @@
   ],
   "action": {
     "default_popup": "popup/popup.html",
-    "default_title": "Axiom to Pump.fun Callout"
+    "default_title": "Social Trading Overlay"
   }
 }
