@@ -1,8 +1,8 @@
 /** Auth, eligibility, create, and update (author reply) against pump.fun. */
-import { API, BASE58_FULL } from "../shared/constants.js";
+import { API, BASE58_FULL, DEFAULT_TEMPLATE } from "../shared/constants.js";
 import { finiteNumber } from "../shared/format.js";
 import { fill, request } from "../shared/http.js";
-import { buildCalloutRequest, loadTemplate } from "../shared/template.js";
+import { buildCalloutRequest } from "../shared/template.js";
 import { pumpCall } from "./transport.js";
 
 export async function authStatus() {
@@ -134,9 +134,7 @@ export async function createCallout(mint, content, image) {
 
   // Create. With an image the request is multipart: template fields plus an "image" part.
 
-  const template = await loadTemplate();
-  const { templateSource = "default" } = await chrome.storage.local.get("templateSource");
-  const req = buildCalloutRequest(template, { mint, content: content || "" });
+  const req = buildCalloutRequest(DEFAULT_TEMPLATE, { mint, content: content || "" });
   if (image) {
     let fields = {};
     try {
@@ -167,7 +165,6 @@ export async function createCallout(mint, content, image) {
     data: res.data,
     error: res.error || null,
     via: res.via,
-    templateSource,
     existing: res.ok ? summarizeCallout(res.data) : null,
     request: { method: req.init.method, url: req.url },
   };

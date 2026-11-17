@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "minimum_chrome_version": "120",
   "description": "Floating overlay on axiom.trade that detects the current coin mint and posts a pump.fun callout or fomo thesis without leaving the page.",
-  "permissions": ["storage", "scripting", "tabs", "webRequest", "declarativeNetRequest"],
+  "permissions": ["storage", "scripting", "tabs", "declarativeNetRequest"],
   "host_permissions": [
     "*://*.pump.fun/*",
     "*://fomo.family/*",

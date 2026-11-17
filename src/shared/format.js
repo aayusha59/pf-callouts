@@ -40,7 +40,3 @@ export function timeAgo(ts) {
 export function finiteNumber(v) {
   return typeof v === "number" && Number.isFinite(v) ? v : 0;
 }
-
-export function escapeHtml(s) {
-  return String(s ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
-}

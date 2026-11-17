@@ -1,18 +1,21 @@
 /**
- * Service-worker entry. Installs the Origin rewrite and request recorder,
+ * Service-worker entry. Installs the Origin rewrite,
  * then routes messages from the overlay and popup.
  */
 import { errMessage } from "../shared/format.js";
-import { deriveTemplate, saveTemplate } from "../shared/template.js";
 import { authStatus, calloutState, createCallout, getCallout } from "./callouts.js";
 import { lookupCoin, resolvePair } from "./coins.js";
 import { diagnosePosition } from "./diagnose.js";
 import { fomoAuth, fomoThesisState, fomoThesisStats, postFomoThesis } from "./fomo.js";
 import { installOriginRule } from "./origin.js";
-import { installRecorder } from "./recorder.js";
 
 installOriginRule();
-installRecorder();
+
+// Older versions kept an editable request template, captured pump.fun requests, and a
+// send-method setting. All three are gone; drop what they stored so it can't apply.
+chrome.runtime.onInstalled.addListener(() => {
+  chrome.storage.local.remove(["calloutTemplate", "templateSource", "captures", "transport"]);
+});
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   handleMessage(msg, sender)
@@ -45,23 +48,6 @@ async function handleMessage(msg, sender) {
       return fomoThesisStats(msg.thesisId);
     case "DIAGNOSE_POSITION":
       return diagnosePosition(msg.mint);
-    case "GET_CAPTURES": {
-      const { captures = [] } = await chrome.storage.local.get("captures");
-      return { ok: true, captures };
-    }
-    case "USE_CAPTURE": {
-      const { captures = [] } = await chrome.storage.local.get("captures");
-      const capture = captures.find((c) => c.id === msg.id);
-      const template = deriveTemplate(capture);
-      if (!template) {
-        return { ok: false, error: "No mint-shaped value in that capture; it is probably not a create request." };
-      }
-      await saveTemplate(template, "captured");
-      return { ok: true, template };
-    }
-    case "CLEAR_CAPTURES":
-      await chrome.storage.local.set({ captures: [] });
-      return { ok: true };
     default:
       return { ok: false, error: `Unknown message type: ${msg?.type}` };
   }

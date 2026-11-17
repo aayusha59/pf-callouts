@@ -5,11 +5,6 @@ import { FOMO_ORIGIN, FOMO_TAB_PATTERN, PUMP_ORIGIN, PUMP_TAB_PATTERN } from "..
 import { errMessage } from "../shared/format.js";
 import { request } from "../shared/http.js";
 
-async function getTransport() {
-  const { transport = "auto" } = await chrome.storage.local.get("transport");
-  return transport;
-}
-
 function isCorsRejection(res) {
   const text = typeof res.data === "string" ? res.data : JSON.stringify(res.data || "");
   return /cors/i.test(text);
@@ -19,19 +14,18 @@ function isCorsRejection(res) {
  * Authenticated pump.fun calls: service-worker fetch first (Origin rewritten),
  * then the same request inside a pump.fun tab if the direct path is unusable.
  *
- * - status 0 / CORS / transport "tab": open a background tab if none exists
+ * - status 0 / CORS: open a background tab if none exists
  * - 401: only reuse an already-open tab
  * - any other status is returned as-is
  */
 export async function pumpCall(url, init) {
-  const transport = await getTransport();
-  let res = transport === "tab" ? { ok: false, status: 0 } : await request(url, init);
+  let res = await request(url, init);
   let via = "direct";
 
   const corsBlocked = res.status === 403 && isCorsRejection(res);
-  const retry = transport !== "direct" && !res.ok && (res.status === 0 || res.status === 401 || corsBlocked);
+  const retry = !res.ok && (res.status === 0 || res.status === 401 || corsBlocked);
   if (retry) {
-    const createIfMissing = res.status === 0 || corsBlocked || transport === "tab";
+    const createIfMissing = res.status === 0 || corsBlocked;
     const viaTab = await runInTab(PUMP_TAB_PATTERN, PUMP_ORIGIN, url, init, { createIfMissing });
     if (viaTab) {
       res = viaTab;

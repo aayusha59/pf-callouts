@@ -64,11 +64,7 @@ That is server/client listing behavior, not something this extension can overrid
 
 ## Popup
 
-The toolbar popup is for session status and request plumbing:
-
-- **Request template:** JSON for `POST /callout/create`. Placeholders `{{mint}}` and `{{content}}` are filled at send time.
-- **Captured callout requests:** while the extension is loaded, a successful write from the pump.fun site itself is recorded (cookies redacted) and adopted as the template unless you edited it by hand.
-- **How to send the request:** auto (service-worker fetch, then a pump.fun tab), direct only, or always via a tab.
+The toolbar popup shows whether you're signed in to pump.fun and fomo, with a link to sign in if you're not. **Recheck** checks both again. **Reset overlay position** puts the overlay back if it ends up off-screen.
 
 ## How requests are sent
 
@@ -83,15 +79,14 @@ A `409 DUPLICATE_CALLOUT` is treated as an update.
 ```
 manifest.json
 popup/                 toolbar popup
-src/background/        service worker (messages, transport, recorder)
+src/background/        service worker (messages, transport)
 src/content/           Axiom overlay and mint detection
-src/shared/            constants, HTTP helpers, templates, messaging
+src/shared/            constants, HTTP helpers, the create request, messaging
 ```
 
 ## Privacy
 
 - Uses the existing pump.fun cookies in this profile.
-- Captured request headers redact `Cookie` and `Authorization`.
 - The Origin rewrite applies only to service-worker requests to pump.fun, not to ordinary browsing.
 
 ## Requirements

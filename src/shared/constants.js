@@ -30,7 +30,6 @@ export const FOMO_MAX_THESIS_LEN = 3000;
 export const MAX_MESSAGE_LEN = 280;
 export const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 export const STATS_POLL_MS = 3000;
-export const MAX_CAPTURES = 5;
 
 export const QUICK_EMOJIS = [
   { label: "lol", char: "\u{1F602}" },

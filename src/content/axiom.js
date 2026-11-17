@@ -81,9 +81,6 @@ async function boot() {
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden && (state.existing || state.fomoExisting)) syncStatsPoll();
   });
-  chrome.storage.onChanged.addListener((changes) => {
-    if ("calloutTemplate" in changes || "transport" in changes) refreshAuth();
-  });
 }
 
 function onContextLost() {
@@ -416,12 +413,7 @@ async function submitCallout() {
     return;
   }
 
-  const hint =
-    res.templateSource === "default" && res.status !== 401
-      ? " If this persists, make one manual callout on pump.fun with this extension loaded so it can capture the exact request, then check the extension popup."
-      : res.status === 401
-        ? " Sign in to pump.fun in this browser, then retry."
-        : "";
+  const hint = res.status === 401 ? " Sign in to pump.fun in this browser, then retry." : "";
   const head = res.status ? `pump.fun returned ${res.status}.` : res.error || "Request failed.";
   overlay.setStatus(head + hint, "err", res.data || res.error || null);
   overlay.render(state);
