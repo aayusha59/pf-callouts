@@ -78,6 +78,7 @@ A `409 DUPLICATE_CALLOUT` is treated as an update.
 
 ```
 manifest.json
+icons/                 toolbar and store icons (16, 32, 48, 128px)
 popup/                 toolbar popup
 src/background/        service worker (messages, transport)
 src/content/           Axiom overlay and mint detection
